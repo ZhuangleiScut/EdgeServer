@@ -54,13 +54,13 @@ class DevelopmentConfig(Config):
     DEBUG = True
     # 连接测试环境数据库的URL
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DEV_DATABASE_URL') or
-                               'mysql://root:2018@localhost/deepnex_dev')
+                               'mysql://root:2018@localhost/edgeserver_dev')
 
 
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DEV_DATABASE_URL') or
-                               'mysql://root:2018@localhost/deepnex_test')
+                               'mysql://root:2018@localhost/edgeserver_test')
     WTF_CSRF_ENABLED = False
 
 
@@ -68,7 +68,7 @@ class ProductionConfig(Config):
     DEBUG = False
     # 连接生产环境数据库的URL
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DEV_DATABASE_URL') or
-                               'mysql://root:2018@localhost/deepnex_pro')
+                               'mysql://root:2018@localhost/edgeserver_pro')
 
 
 config = {

@@ -17,12 +17,12 @@ def admin_login(func):
     return wrap
 
 
-def user_auth(func):
-    """过滤器：已经通过管理员的用户认证"""
-    @wraps(func)
-    def wrap(*args, **kwargs):
-        if current_user.is_auth == 1:
-            return func(*args, **kwargs)
-        else:
-            return render_template('user/unauthed.html', title=u'暂无权限访问')
-    return wrap
+# def user_auth(func):
+#     """过滤器：已经通过管理员的用户认证"""
+#     @wraps(func)
+#     def wrap(*args, **kwargs):
+#         if current_user.is_auth == 1:
+#             return func(*args, **kwargs)
+#         else:
+#             return render_template('user/unauthed.html', title=u'暂无权限访问')
+#     return wrap

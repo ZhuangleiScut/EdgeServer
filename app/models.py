@@ -13,12 +13,6 @@ from . import db, login_manager
 @User:用户登录、注册、认证邮箱等
 """
 
-# 用户默认配额
-DEFAULT_CPU = 1000
-DEFAULT_MEMORY = 2048
-DEFAULT_APPS = 10
-DEFAULT_GPU = 0
-
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -37,27 +31,12 @@ class User(UserMixin, db.Model):
     address = db.Column(db.String(128))
     last_login = db.Column(db.DateTime(), default=datetime.now)
     date_joined = db.Column(db.DateTime(), default=datetime.now)
+
     permissions = db.Column(db.Integer, default=1, nullable=False)  # 权限控制：管理员0, 用户1
 
     # 业务信息
-    is_auth = db.Column(db.Integer, default=0, nullable=False)      # 是否被管理员通过认证。默认为0(未认证), 1(已认证)
     avatar_url = db.Column(db.String(128))                          # 头像路径，建议设置为一个本地的相对路径的URL
-    api_password = db.Column(db.String(128))                        # API后台账户的密码(建议随机生成8位密码),且此密码对用户不可见,以防止不良用户对后台的非法访问
 
-    ehpc_flag = db.Column(db.Integer, default=0, nullable=False)    # 若该值为1，则标志该用户是否是来自ehpc系统的一个用户
-
-    # 资源配额, 注意管理员用户也有资源配额限制
-    max_cpu = db.Column(db.Integer, default=DEFAULT_CPU)                    # 资源配额：CPU 核数，单位为千分之一
-    used_cpu = db.Column(db.Integer, default=0)
-    max_memory = db.Column(db.Integer, default=DEFAULT_MEMORY)              # 资源配额：内存大小，单位为兆（M）
-    used_memory = db.Column(db.Integer, default=0)
-    max_gpu = db.Column(db.Integer, default=DEFAULT_GPU)                    # 资源配额：GPU 核数，单位为千分之一
-    used_gpu = db.Column(db.Integer, default=0)
-    max_apps = db.Column(db.Integer, default=DEFAULT_APPS)                  # 资源配额：可创建的容器数量
-    used_apps = db.Column(db.Integer, default=0)
-
-    applies = db.relationship('Apply', backref='user', lazy='dynamic')
-    tempInstances = db.relationship('TempInstance', backref='user', lazy='dynamic')
 
     # 以下函数分别用于对用户密码进行读取保护、散列化以及验证密码
     @property
@@ -111,18 +90,18 @@ def load_user(user_id):
 """
 
 
-class Apply(db.Model):
-    __tablename__ = 'apply'
-    id = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, db.ForeignKey('users.id'))
-    instance_num = db.Column(db.Integer)                  # 申请的实例数量
-    cpu_num = db.Column(db.Integer)                       # 申请的CPU核数，单位是千分之一
-    memory_num = db.Column(db.Integer)                    # 申请的内存数量，单位是M
-    gpu_num = db.Column(db.Integer, default=0)            # 申请的GPU核数，单位是千分之一
-    note = db.Column(db.Text())                           # 备注、申请理由
-    status = db.Column(db.Integer, default=0)             # 审核状态,0是待审核，1是通过，2是不通过
-    created_time = db.Column(db.DateTime(), default=datetime.now)
-    auth_time = db.Column(db.DateTime(), nullable=True)
+# class Apply(db.Model):
+#     __tablename__ = 'apply'
+#     id = db.Column(db.Integer, primary_key=True)
+#     userId = db.Column(db.Integer, db.ForeignKey('users.id'))
+#     instance_num = db.Column(db.Integer)                  # 申请的实例数量
+#     cpu_num = db.Column(db.Integer)                       # 申请的CPU核数，单位是千分之一
+#     memory_num = db.Column(db.Integer)                    # 申请的内存数量，单位是M
+#     gpu_num = db.Column(db.Integer, default=0)            # 申请的GPU核数，单位是千分之一
+#     note = db.Column(db.Text())                           # 备注、申请理由
+#     status = db.Column(db.Integer, default=0)             # 审核状态,0是待审核，1是通过，2是不通过
+#     created_time = db.Column(db.DateTime(), default=datetime.now)
+#     auth_time = db.Column(db.DateTime(), nullable=True)
 
 
 """
@@ -131,17 +110,17 @@ class Apply(db.Model):
 """
 
 
-class TempInstance(db.Model):
-    __tablename__ = 'tempinstances'
-    id = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, db.ForeignKey('users.id'))         # 所属用户
-    appId = db.Column(db.Integer, db.ForeignKey('applications.id'))   # 所属应用模板
-    name = db.Column(db.String(128), nullable=False)                  # 实例名
-    param = db.Column(db.Text(), nullable=False)                      # 启动参数
-    cpu_num = db.Column(db.Integer)                                   # CPU消耗量
-    memory_num = db.Column(db.Integer)                                # 内存消耗量
-    apps_num = db.Column(db.Integer)                                  # 容器数量消耗量
-    created_time = db.Column(db.DateTime(), default=datetime.now)     # 暂停时间
+# class TempInstance(db.Model):
+#     __tablename__ = 'tempinstances'
+#     id = db.Column(db.Integer, primary_key=True)
+#     userId = db.Column(db.Integer, db.ForeignKey('users.id'))         # 所属用户
+#     appId = db.Column(db.Integer, db.ForeignKey('applications.id'))   # 所属应用模板
+#     name = db.Column(db.String(128), nullable=False)                  # 实例名
+#     param = db.Column(db.Text(), nullable=False)                      # 启动参数
+#     cpu_num = db.Column(db.Integer)                                   # CPU消耗量
+#     memory_num = db.Column(db.Integer)                                # 内存消耗量
+#     apps_num = db.Column(db.Integer)                                  # 容器数量消耗量
+#     created_time = db.Column(db.DateTime(), default=datetime.now)     # 暂停时间
 
 
 """
@@ -151,19 +130,19 @@ class TempInstance(db.Model):
 """
 
 
-class Application(db.Model):
-    __tablename__ = 'applications'
-    id = db.Column(db.Integer, primary_key=True)                # 应用ID（注意，非k8s端ID）
-    aid = db.Column(db.Integer)                                 # k8s端的应用ID
-    name = db.Column(db.String(128), nullable=False)            # 模板中文名
-    info = db.Column(db.Text(), nullable=False)                 # 模板中文简介
-    param = db.Column(db.Text(), nullable=False)                # 模板参数自定义json字符串
-    path = db.Column(db.String(128))                            # 模板的后台路径
-    param_guide = db.Column(db.Text())                          # 创建实例时提供给用户的对各个参数的集中解释说明
-    cover_img = db.Column(db.String(128), default='/static/resource/img/test2.jpg')    # 封面图片地址
-    updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
-
-    tempInstances = db.relationship('TempInstance', backref='application', lazy='dynamic')
+# class Application(db.Model):
+#     __tablename__ = 'applications'
+#     id = db.Column(db.Integer, primary_key=True)                # 应用ID（注意，非k8s端ID）
+#     aid = db.Column(db.Integer)                                 # k8s端的应用ID
+#     name = db.Column(db.String(128), nullable=False)            # 模板中文名
+#     info = db.Column(db.Text(), nullable=False)                 # 模板中文简介
+#     param = db.Column(db.Text(), nullable=False)                # 模板参数自定义json字符串
+#     path = db.Column(db.String(128))                            # 模板的后台路径
+#     param_guide = db.Column(db.Text())                          # 创建实例时提供给用户的对各个参数的集中解释说明
+#     cover_img = db.Column(db.String(128), default='/static/resource/img/test2.jpg')    # 封面图片地址
+#     updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
+#
+#     tempInstances = db.relationship('TempInstance', backref='application', lazy='dynamic')
 
 
 """
@@ -173,22 +152,32 @@ class Application(db.Model):
 """
 
 
-class News(db.Model):
-    __tablename__ = 'news'
-    id = db.Column(db.Integer, primary_key=True)                  # 资讯 ID
-    title = db.Column(db.String(128), nullable=False)             # 资讯标题
-    poster = db.Column(db.String(128), nullable=False)            # 发布者
-    content = db.Column(db.Text(), nullable=False)                # 资讯正文
-    visitNum = db.Column(db.Integer, default=0)                   # 浏览次数
-    updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
-
-
-class Notice(db.Model):
-    __tablename__ = 'notices'
-    id = db.Column(db.Integer, primary_key=True)                  # 公告 ID
-    title = db.Column(db.String(128), nullable=False)             # 公告标题
-    poster = db.Column(db.String(128), nullable=False)            # 发布者
-    content = db.Column(db.Text(), nullable=False)                # 公告正文
-    visitNum = db.Column(db.Integer, default=0)                   # 浏览次数
-    updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
-
+# class News(db.Model):
+#     __tablename__ = 'news'
+#     id = db.Column(db.Integer, primary_key=True)                  # 资讯 ID
+#     title = db.Column(db.String(128), nullable=False)             # 资讯标题
+#     poster = db.Column(db.String(128), nullable=False)            # 发布者
+#     content = db.Column(db.Text(), nullable=False)                # 资讯正文
+#     visitNum = db.Column(db.Integer, default=0)                   # 浏览次数
+#     updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
+#
+#
+# class Notice(db.Model):
+#     __tablename__ = 'notices'
+#     id = db.Column(db.Integer, primary_key=True)                  # 公告 ID
+#     title = db.Column(db.String(128), nullable=False)             # 公告标题
+#     poster = db.Column(db.String(128), nullable=False)            # 发布者
+#     content = db.Column(db.Text(), nullable=False)                # 公告正文
+#     visitNum = db.Column(db.Integer, default=0)                   # 浏览次数
+#     updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
+#
+class Log(db.Model):
+    __tablename__ = 'logs'
+    id = db.Column(db.Integer, primary_key=True)
+    userId = db.Column(db.Integer, db.ForeignKey('users.id'))                  # 操作涉及的用户
+    content = db.Column(db.Text(), nullable=False)                             # 操作的主要内容
+    """
+    type_flag 用于记录操作类型:0代表普通操作如登录等,1代表删除图片缓存,2代表删除数据信息
+    """
+    type_flag = db.Column(db.Integer, default=0)
+    created_time = db.Column(db.DateTime(), default=datetime.now)              # 记录日志时的时间

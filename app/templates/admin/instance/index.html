@@ -1,0 +1,338 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block header_ext %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='plugins/datatables/dataTables.bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/instance.css') }}">
+    <script src="{{ url_for('static',filename='plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='plugins/datatables/dataTables.bootstrap.min.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+    <section class="content-header">
+      <h1>
+        用户实例管理
+        <small>查看与管理所有用户的实例</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li style="font-size: 18px;"><a href="{{ url_for('admin.index') }}"><i class="fa fa-tags"></i>主控制台</a></li>
+        <li class="active" style="font-size: 18px;">用户实例管理</li>
+      </ol>
+    </section>
+
+    <section class="content container-fluid">
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-xs-10 col-xs-offset-1">
+
+                {% with messages = get_flashed_messages() %}
+                    {% for message in messages %}
+                        {% if message == 'Deleted success' %}
+                            <div class="alert alert-success alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                <h4><i class="icon fa fa-check"></i> 实例删除成功!</h4>
+                            </div>
+                        {% elif message == 'Paused success' %}
+                            <div class="alert alert-success alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                <h4><i class="icon fa fa-check"></i> 实例暂停成功!</h4>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endwith %}
+
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                      <h3 class="box-title">正在运行的实例列表</h3>
+                      <div class="box-tools pull-right">
+                          <a href="{{ url_for('admin.instance_deleted') }}" class="btn btn-success btn-sm">查看所有实例</a>
+                          <button type="button" class="btn btn-success btn-sm" data-widget="collapse">折叠列表</button>
+                      </div>
+                    </div>
+                    <div class="box-body">
+                        <table class="table table-striped dataTable" id="myTable">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>实例名</th>
+                                    <th>应用模板名</th>
+                                    <th>拥有者</th>
+                                    <th>运行状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for i in instances %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ i.instancename }}</td>
+                                    <td>{{ i.appname }}</td>
+                                    <td>{{ i.username }}</td>
+                                    <td>{% if i.state == 0 %}<span class="label label-success">运行中</span>{% else %}<span class="label label-danger">已删除</span>{% endif %}</td>
+                                    <td>{{ i.createtime }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin.instance_detail',iid=i.iid) }}" class="btn btn-sm btn-success">详细信息</a>
+                                        {% if i.state == 0 %}
+                                        <a class="btn btn-sm btn-warning" data-id="{{ i.iid }}" data-username="{{ i.username }}" data-toggle="modal" data-target="#modal-pause">暂停实例</a>
+                                        <a class="btn btn-sm btn-danger" data-id="{{ i.iid }}" data-username="{{ i.username }}" data-toggle="modal" data-target="#modal-delete">删除实例</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-5 col-xs-offset-1">
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa fa-pie-chart"></i> 应用——实例数量分布图</h3>
+                      <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="box-body">
+                      <div id="chart-1" style="height: 340px;">
+
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-5">
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa fa-pie-chart"></i> 容器数量——用户分布图</h3>
+                      <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="box-body">
+                      <div id="chart-2" style="height: 340px;">
+
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- /.content -->
+
+    <!-- modal-dialog -->
+    <div class="modal modal-danger fade" id="modal-delete" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span></button>
+            <h4 class="modal-title">删除</h4>
+          </div>
+          <div class="modal-body">
+            <p>删除后将不可恢复，是否确定删除？</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">关闭</button>
+            <button id="del-confirm" href="javascript:void()" type="button" class="btn btn-outline" data-loading-text="Loading...">删除</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+     <!-- modal-dialog -->
+    <div class="modal modal-warning fade" id="modal-pause" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span></button>
+            <h4 class="modal-title">暂停用户实例</h4>
+          </div>
+          <div class="modal-body">
+            <p>暂停后只可由用户恢复该实例，是否确定执行暂停？</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">关闭</button>
+            <button id="pause-confirm" href="javascript:void()" type="button" class="btn btn-outline" data-loading-text="Loading...">执行暂停</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+{% endblock %}
+
+{% block footer_ext %}
+
+    <script src="{{ url_for('static',filename='js/echarts.js') }}"></script>
+
+    <script>
+        $(document).ready(function(){
+            $('#myTable').DataTable({
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Chinese.json"
+                },
+                searching: true,
+                ordering: true
+            });
+
+            var iid, username;
+
+            $("#modal-delete").on("show.bs.modal", function(e) {
+                // 这里的btn就是触发元素，即你点击的删除按钮
+                var btn = $(e.relatedTarget);
+                // do your work
+                iid = btn.data("id");
+                username = btn.data("username");
+            });
+            $("#del-confirm").click(function () {
+                $.ajax({
+                    url: "{{ url_for('admin.instance_del')}}",
+                    type: "post",
+                    data:{'iid':iid,'username':username},
+                    success: function (data) {
+                        window.location.reload();
+                    },
+                    error: function () {
+                        alert('删除失败')
+                    }
+                });
+            });
+
+            $("#modal-pause").on("show.bs.modal", function(e) {
+                // 这里的btn就是触发元素，即你点击的删除按钮
+                var btn = $(e.relatedTarget);
+                // do your work
+                iid = btn.data("id");
+                username = btn.data("username");
+            });
+            $("#pause-confirm").click(function () {
+                $.ajax({
+                    url: "{{ url_for('admin.instance_pause')}}",
+                    type: "post",
+                    data:{'iid':iid,'username':username},
+                    success: function (data) {
+                        window.location.reload();
+                    },
+                    error: function () {
+                        alert('暂停失败')
+                    }
+                });
+            });
+
+            load_chart_1();
+            load_chart_2();
+        });
+    </script>
+
+    <script>
+        function load_chart_1() {
+            var chart = echarts.init(document.getElementById('chart-1'));
+            var apps = null, values = null, arr = [];
+            $.ajax({
+               type:'get',
+               url:'{{ url_for('admin.load_app_distribute') }}',
+               async: false,
+               success:function (data) {
+                   apps = data['apps'];
+                   values = data['values'];
+                   for(var i=0;i<apps.length;i++){
+                       var obj = {};
+                       obj.name = apps[i];
+                       obj.value = values[i];
+                       arr.push(obj);
+                   }
+               },
+               error:function () {
+                   alert("获取失败，请检查网络！");
+               }
+            });
+            console.log(arr);
+            var option = {
+                tooltip : {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    data: apps
+                },
+                series : [
+                    {
+                        name: '实例数量',
+                        type: 'pie',
+                        radius: '55%',
+                        center: ['50%', '60%'],
+                        data: arr,
+                        itemStyle: {
+                            emphasis: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+            chart.setOption(option);
+        }
+
+        function load_chart_2() {
+            var chart = echarts.init(document.getElementById('chart-2'));
+            var result = null;
+
+            $.ajax({
+               type:'get',
+               url:'{{ url_for('admin.load_instance_distribute') }}',
+               async: false,
+               success:function (data) {
+                   result = data['result'];
+               },
+               error:function () {
+                   alert('获取失败，请检查网络！');
+               }
+            });
+
+            var option = {
+                title : {
+                    subtext: '横轴单位为容器数量, 纵轴为持有该容器数量的用户数'
+                },
+                tooltip : {
+                    trigger: 'axis'
+                },
+                calculable : true,
+                xAxis : [
+                    {
+                        type : 'category',
+                        data : ['0','2个以下','4个以下','6个以下','6个以上']
+                    }
+                ],
+                yAxis : [
+                    {
+                        type : 'value'
+                    }
+                ],
+                series : [
+                    {
+                        name:'用户数',
+                        type:'bar',
+                        data: result,
+                        itemStyle : {
+                            normal:{color:'#00a65a'} // #63B8FF
+                        }
+                    }
+                ]
+            };
+            chart.setOption(option);
+        }
+    </script>
+{% endblock %}

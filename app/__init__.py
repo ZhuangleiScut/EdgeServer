@@ -18,7 +18,7 @@ db = SQLAlchemy()
 
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'  # 设置session保护级别
-login_manager.login_view = 'auth.login'      # 设置登录视图
+login_manager.login_view = 'admin.login'      # 设置登录视图
 
 
 def create_app(config_name):

@@ -1,0 +1,257 @@
+{% extends 'user/login_base.html' %}
+
+{% block header_ext %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='plugins/datatables/dataTables.bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/instance.css') }}">
+    <script src="{{ url_for('static',filename='plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='plugins/datatables/dataTables.bootstrap.min.js') }}"></script>
+{% endblock %}
+
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container">
+        <div class="row" style="margin-top: 20px;">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                  <h3 class="box-title">EHPC用户同步的流程说明</h3>
+                </div>
+                <div class="box-body">
+                    <p>1. 首先EHPC与DLP约定一个密钥K。</p>
+                    <p>2. 当需要从EHPC注册一个新用户到DLP时，调用"注册接口"，DLP则注册该用户（注意：若用户主键与DLP的原生用户主键重复，则注册失败）。</p>
+                    <p>3. 当EHPC的一个已经注册到DLP的用户要自动登录到DLP时，首先需要EHPC系统调用"获取登录token接口"，把token附在"登录接口"上做成一个URL返回到用户的浏览器页面上；
+                        用户再直接点击URL可以免密码进入DLP的主页面</p>
+                </div>
+            </div>
+        </div>
+
+        <h3>1.注册接口——/user/ehpc_register</h3>
+        <div class="row" style="margin-top: 20px;">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                  <h3 class="box-title">请求参数列表 (method:POST)</h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped dataTable" id="myTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>参数名称</th>
+                                <th>参数说明</th>
+                                <th>类型</th>
+                                <th>是否必需</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>username</td>
+                                <td>用户名</td>
+                                <td>string</td>
+                                <td>是</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>email</td>
+                                <td>用户邮箱</td>
+                                <td>string</td>
+                                <td>是</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>password_hash</td>
+                                <td>用户密码的哈希</td>
+                                <td>string</td>
+                                <td>是</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>secret</td>
+                                <td>与ehpc系统的约定密钥</td>
+                                <td>string</td>
+                                <td>是</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>realname</td>
+                                <td>真实姓名</td>
+                                <td>string</td>
+                                <td>否</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>phone</td>
+                                <td>手机号码</td>
+                                <td>string</td>
+                                <td>否</td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>address</td>
+                                <td>所属单位</td>
+                                <td>string</td>
+                                <td>否</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                  <h3 class="box-title">返回参数列表</h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped dataTable" id="myTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>参数名称</th>
+                                <th>参数说明</th>
+                                <th>类型</th>
+                                <th>备注</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>status</td>
+                                <td>状态</td>
+                                <td>int</td>
+                                <td>200(请求成功),400或401(请求失败)</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>message</td>
+                                <td>返回信息</td>
+                                <td>string</td>
+                                <td>如"register success"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <h3>2.获取登录token接口——/user/ehpc_login_token</h3>
+        <div class="row" style="margin-top: 20px;">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                  <h3 class="box-title">请求参数列表 (method:POST)</h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped dataTable" id="myTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>参数名称</th>
+                                <th>参数说明</th>
+                                <th>类型</th>
+                                <th>是否必需</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>email</td>
+                                <td>用户邮箱</td>
+                                <td>string</td>
+                                <td>是</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>secret</td>
+                                <td>与ehpc系统的约定密钥</td>
+                                <td>string</td>
+                                <td>是</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                  <h3 class="box-title">返回参数列表</h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped dataTable" id="myTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>参数名称</th>
+                                <th>参数说明</th>
+                                <th>类型</th>
+                                <th>备注</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>status</td>
+                                <td>状态</td>
+                                <td>int</td>
+                                <td>200(请求成功),400或401(请求失败)</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>token</td>
+                                <td>返回的凭据</td>
+                                <td>string</td>
+                                <td>是一个哈希，且包含有用户邮箱名与过期时间（验证逻辑放在DLP端）</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>message</td>
+                                <td>返回信息</td>
+                                <td>string</td>
+                                <td>如"request success"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <h3>3.用户登录接口——/user/ehpc_login</h3>
+        <div class="row" style="margin-top: 20px;">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                  <h3 class="box-title">请求参数列表 (method:GET)</h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped dataTable" id="myTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>参数名称</th>
+                                <th>参数说明</th>
+                                <th>类型</th>
+                                <th>是否必需</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>token</td>
+                                <td>从上一个接口获取的凭据</td>
+                                <td>string</td>
+                                <td>是</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+</script>
+{% endblock %}

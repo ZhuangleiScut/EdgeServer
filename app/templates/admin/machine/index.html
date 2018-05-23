@@ -1,0 +1,165 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block header_ext %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='plugins/datatables/dataTables.bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/instance.css') }}">
+    <script src="{{ url_for('static',filename='plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='plugins/datatables/dataTables.bootstrap.min.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+    <section class="content-header">
+      <h1>
+        资源配额管理
+        <small>查看与管理系统资源配额</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li style="font-size: 18px;"><a href="{{ url_for('admin.index') }}"><i class="fa fa-tags"></i>主控制台</a></li>
+        <li class="active" style="font-size: 18px;">资源配额管理</li>
+      </ol>
+    </section>
+
+    <section class="content container-fluid">
+
+        <div class="row">
+
+            <div class="col-md-5 col-md-offset-1">
+                <div class="info-box bg-green">
+                    <span class="info-box-icon"><i class="ion ion-cube"></i></span>
+
+                    <div class="info-box-content">
+                      <span class="info-box-text">系统已分配容器数量</span>
+                      <span class="info-box-number">{{ dist_apps }} 个</span>
+
+                      <div class="progress">
+                        <div class="progress-bar" style="width: {{ apps_rate }}%"></div>
+                      </div>
+                      <span class="progress-description">
+                          占容器数量全部资源 <b>{{ max_apps }}</b> 的 {{ apps_rate }} %
+                          </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+
+                <div class="info-box bg-green">
+                    <span class="info-box-icon"><i class="ion ion-ios-grid-view"></i></span>
+
+                    <div class="info-box-content">
+                      <span class="info-box-text">系统已分配处理器核数</span>
+                      <span class="info-box-number">{{ dist_cpu }} 核</span>
+
+                      <div class="progress">
+                        <div class="progress-bar" style="width: {{ cpu_rate }}%"></div>
+                      </div>
+                      <span class="progress-description">
+                          占处理器全部资源 <b>{{ max_cpu }} 核</b> 的 {{ cpu_rate }} %
+                          </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="info-box bg-green">
+                    <span class="info-box-icon"><i class="ion ion-ios-barcode"></i></span>
+
+                    <div class="info-box-content">
+                      <span class="info-box-text">系统已分配内存数量</span>
+                      <span class="info-box-number">{{ dist_memory }} G</span>
+
+                      <div class="progress">
+                        <div class="progress-bar" style="width: {{ memory_rate }}%"></div>
+                      </div>
+                      <span class="progress-description">
+                            占内存全部资源 <b>{{ max_memory }} G</b> 的 {{ memory_rate }} %
+                          </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+
+                <div class="info-box bg-green">
+                    <span class="info-box-icon"><i class="ion ion-grid"></i></span>
+
+                    <div class="info-box-content">
+                      <span class="info-box-text">GPU</span>
+                      <span class="info-box-number">暂不支持</span>
+
+                      <div class="progress">
+                        <div class="progress-bar" style="width: 0%"></div>
+                      </div>
+                      <span class="progress-description">
+                            敬请期待 GPU 配额功能上线
+                          </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title"> 审核用户的配额申请</h3>
+                  <div class="box-tools pull-right">
+                      <a class="btn btn-primary btn-sm" href="{{ url_for('admin.resource_history') }}">查看已审核列表</a>
+{#                      <button type="button" class="btn btn-success btn-sm" data-widget="collapse">折叠列表</button>#}
+                  </div>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped dataTable" id="myTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>用户名</th>
+                                <th>CPU(千分之一核)</th>
+                                <th>内存(兆)</th>
+                                <th>容器数量</th>
+                                <th>申请时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in applies %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ a.user.username }}</td>
+                                <td>{{ a.cpu_num }}</td>
+                                <td>{{ a.memory_num }}</td>
+                                <td>{{ a.instance_num }}</td>
+                                <td>{{ a.created_time }}</td>
+                                <td>
+                                    <a href="{{ url_for('admin.resource_auth', aid=a.id) }}" class="btn btn-success">通过</a>
+                                    <a href="{{ url_for('admin.resource_unauth', aid=a.id) }}" class="btn btn-danger">拒绝</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+              </div>
+            </div>
+        </div>
+
+    </section>
+    <!-- /.content -->
+
+
+
+
+{% endblock %}
+
+{% block footer_ext %}
+    <script>
+        $(document).ready(function(){
+            $('#myTable').DataTable({
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Chinese.json"
+                },
+                searching: true,
+                ordering: false
+            });
+        });
+
+    </script>
+{% endblock %}
