@@ -1,0 +1,80 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block header_ext %}
+{% endblock %}
+
+{% block content %}
+    <section class="content-header">
+      <h1>
+        操作日志
+        <small>查询近期的用户操作日志</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li style="font-size: 18px;"><a href="{{ url_for('admin.index') }}"><i class="fa fa-tags"></i>主页</a></li>
+        <li class="active" style="font-size: 18px;">操作日志</li>
+      </ol>
+    </section>
+
+    <section class="content container-fluid container">
+        <div class="row" style="margin-top: 10px;">
+             {% if logs | length == 0 %}
+                 <div class="alert alert-warning alert-dismissible">
+                    <h4><i class="icon fa fa-warning"></i> 该用户最近没有对平台进行操作</h4>
+                 </div>
+             {% endif %}
+
+            <div class="col-xs-8 col-xs-offset-2">
+                <ul class="timeline">
+                    {% for log in logs %}
+                        {% if log.type_flag == 0 %}
+                            <li>
+                                <i class="fa fa-user bg-blue"></i>
+                                <div class="timeline-item">
+                                    <h3 class="timeline-header"><i class="fa fa-clock-o"></i> {{ log.created_time }}</h3>
+                                    <div class="timeline-body">
+                                        <p>用户 <b>{{ log.user.real_name }}</b> {{ log.content }}</p>
+                                    </div>
+                                </div>
+                            </li>
+                        {% elif log.type_flag == 1 %}
+                            <li>
+                                <i class="fa fa-cubes bg-green"></i>
+                                <div class="timeline-item">
+                                    <h3 class="timeline-header"><i class="fa fa-clock-o"></i> {{ log.created_time }}</h3>
+                                    <div class="timeline-body">
+                                        <p>用户 <b>{{ log.user.real_name }}</b> {{ log.content }}</p>
+                                    </div>
+                                </div>
+                            </li>
+                        {% elif log.type_flag == 2 %}
+                            <li>
+                                <i class="fa fa-cubes bg-red"></i>
+                                <div class="timeline-item">
+                                    <h3 class="timeline-header"><i class="fa fa-clock-o"></i> {{ log.created_time }}</h3>
+                                    <div class="timeline-body">
+                                        <p>用户 <b>{{ log.user.real_name }}</b> {{ log.content }}</p>
+                                    </div>
+                                </div>
+                            </li>
+                        {% elif log.type_flag == 3 %}
+                            <li>
+                                <i class="fa fa-cubes bg-red"></i>
+                                <div class="timeline-item">
+                                    <h3 class="timeline-header"><i class="fa fa-clock-o"></i> {{ log.created_time }}</h3>
+                                    <div class="timeline-body">
+                                        <p>用户 <b>{{ log.user.real_name }}</b> {{ log.content }}</p>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endif %}
+
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </section>
+{% endblock %}
+
+{% block footer_ext %}
+{% endblock %}

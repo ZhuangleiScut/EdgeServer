@@ -36,7 +36,8 @@ class User(UserMixin, db.Model):
 
     # 业务信息
     avatar_url = db.Column(db.String(128))                          # 头像路径，建议设置为一个本地的相对路径的URL
-
+    # 日志
+    logs = db.relationship('Log', backref='user', lazy='dynamic')
 
     # 以下函数分别用于对用户密码进行读取保护、散列化以及验证密码
     @property
@@ -84,93 +85,55 @@ def load_user(user_id):
 
 
 """
-资源管理
-@Apply:配额的申请表
-用户申请增加配额，通过管理员审核后即可增加相应的配额
+设备管理
+@equipment:设备列表
 """
 
 
-# class Apply(db.Model):
-#     __tablename__ = 'apply'
-#     id = db.Column(db.Integer, primary_key=True)
-#     userId = db.Column(db.Integer, db.ForeignKey('users.id'))
-#     instance_num = db.Column(db.Integer)                  # 申请的实例数量
-#     cpu_num = db.Column(db.Integer)                       # 申请的CPU核数，单位是千分之一
-#     memory_num = db.Column(db.Integer)                    # 申请的内存数量，单位是M
-#     gpu_num = db.Column(db.Integer, default=0)            # 申请的GPU核数，单位是千分之一
-#     note = db.Column(db.Text())                           # 备注、申请理由
-#     status = db.Column(db.Integer, default=0)             # 审核状态,0是待审核，1是通过，2是不通过
-#     created_time = db.Column(db.DateTime(), default=datetime.now)
-#     auth_time = db.Column(db.DateTime(), nullable=True)
+class Equipment(db.Model):
+    __tablename__ = 'equipment'
+    id = db.Column(db.Integer, primary_key=True)
+    address = db.Column(db.String(128))
+    image_num = db.Column(db.Integer)                           # 树莓派上传的图片数量
+    run_time = db.Column(db.DateTime(), default=datetime.now)   # 设备开始运行时间
+    last_commit = db.Column(db.DateTime())                      # 最后一次上传的时间
+    image = db.relationship('Image', backref='equip')
 
 
 """
-实例管理
-@TempInstance：存储被删除实例的伪暂停表
+图片缓存管理
+@Image：图片缓存列表
 """
 
 
-# class TempInstance(db.Model):
-#     __tablename__ = 'tempinstances'
-#     id = db.Column(db.Integer, primary_key=True)
-#     userId = db.Column(db.Integer, db.ForeignKey('users.id'))         # 所属用户
-#     appId = db.Column(db.Integer, db.ForeignKey('applications.id'))   # 所属应用模板
-#     name = db.Column(db.String(128), nullable=False)                  # 实例名
-#     param = db.Column(db.Text(), nullable=False)                      # 启动参数
-#     cpu_num = db.Column(db.Integer)                                   # CPU消耗量
-#     memory_num = db.Column(db.Integer)                                # 内存消耗量
-#     apps_num = db.Column(db.Integer)                                  # 容器数量消耗量
-#     created_time = db.Column(db.DateTime(), default=datetime.now)     # 暂停时间
-
+class Image(db.Model):
+    __tablename__ = 'image'
+    id = db.Column(db.Integer, primary_key=True)
+    equip_id = db.Column(db.Integer, db.ForeignKey('equipment.id'))        # 所属设备
+    face_num = db.Column(db.Integer)                                  # 图片中包含的人脸个数
+    commit_time = db.Column(db.DateTime(), default=datetime.now)      # 上传时间
+    path = db.Column(db.String(128), nullable=False)                  # 图片存储路径
+    face = db.relationship('Face', backref='image')
 
 """
-模板管理
-@Application:模板
-由于不同的模板可能具有不同的自定义参数，因此用一个json字符串来表示
+脸部数据管理
+@Face:脸部数据表
 """
 
 
-# class Application(db.Model):
-#     __tablename__ = 'applications'
-#     id = db.Column(db.Integer, primary_key=True)                # 应用ID（注意，非k8s端ID）
-#     aid = db.Column(db.Integer)                                 # k8s端的应用ID
-#     name = db.Column(db.String(128), nullable=False)            # 模板中文名
-#     info = db.Column(db.Text(), nullable=False)                 # 模板中文简介
-#     param = db.Column(db.Text(), nullable=False)                # 模板参数自定义json字符串
-#     path = db.Column(db.String(128))                            # 模板的后台路径
-#     param_guide = db.Column(db.Text())                          # 创建实例时提供给用户的对各个参数的集中解释说明
-#     cover_img = db.Column(db.String(128), default='/static/resource/img/test2.jpg')    # 封面图片地址
-#     updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
-#
-#     tempInstances = db.relationship('TempInstance', backref='application', lazy='dynamic')
+class Face(db.Model):
+    __tablename__ = 'face'
+    id = db.Column(db.Integer, primary_key=True)                        # ID
+    image_id = db.Column(db.Integer, db.ForeignKey('image.id'))     # 脸部所在的图片id
+    # name = db.Column(db.String(128), nullable=False)            # 模板中文名
+    # info = db.Column(db.Text(), nullable=False)                 # 模板中文简介
+    # param = db.Column(db.Text(), nullable=False)                # 模板参数自定义json字符串
+    # path = db.Column(db.String(128))                            # 模板的后台路径
+    # param_guide = db.Column(db.Text())                          # 创建实例时提供给用户的对各个参数的集中解释说明
+    # cover_img = db.Column(db.String(128), default='/static/resource/img/test2.jpg')    # 封面图片地址
+    # updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
 
 
-"""
-资讯类管理
-@News：新闻资讯
-@Notices：系统公告
-"""
-
-
-# class News(db.Model):
-#     __tablename__ = 'news'
-#     id = db.Column(db.Integer, primary_key=True)                  # 资讯 ID
-#     title = db.Column(db.String(128), nullable=False)             # 资讯标题
-#     poster = db.Column(db.String(128), nullable=False)            # 发布者
-#     content = db.Column(db.Text(), nullable=False)                # 资讯正文
-#     visitNum = db.Column(db.Integer, default=0)                   # 浏览次数
-#     updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
-#
-#
-# class Notice(db.Model):
-#     __tablename__ = 'notices'
-#     id = db.Column(db.Integer, primary_key=True)                  # 公告 ID
-#     title = db.Column(db.String(128), nullable=False)             # 公告标题
-#     poster = db.Column(db.String(128), nullable=False)            # 发布者
-#     content = db.Column(db.Text(), nullable=False)                # 公告正文
-#     visitNum = db.Column(db.Integer, default=0)                   # 浏览次数
-#     updatedTime = db.Column(db.DateTime(), default=datetime.now)  # 更新时间
-#
 class Log(db.Model):
     __tablename__ = 'logs'
     id = db.Column(db.Integer, primary_key=True)
@@ -180,4 +143,4 @@ class Log(db.Model):
     type_flag 用于记录操作类型:0代表普通操作如登录等,1代表删除图片缓存,2代表删除数据信息
     """
     type_flag = db.Column(db.Integer, default=0)
-    created_time = db.Column(db.DateTime(), default=datetime.now)              # 记录日志时的时间
+    created_time = db.Column(db.DateTime(), default=datetime.now)              # 记录日志时的时间,自动填充现在的时间
