@@ -14,8 +14,9 @@
         <small>管理用户信息</small>
       </h1>
       <ol class="breadcrumb">
+        <a href="{{ url_for('admin.index') }}" target="_blank" class="btn btn-primary btn-sm">添加用户</a>
+{#        <li style="font-size: 18px;"><a href="{{ url_for('admin.index') }}"><i class="fa fa-bookmark"></i>添加用户</a></li>#}
         <li style="font-size: 18px;"><a href="{{ url_for('admin.index') }}"><i class="fa fa-tags"></i>主控制台</a></li>
-        <li class="active" style="font-size: 18px;">用户管理</li>
       </ol>
     </section>
 
