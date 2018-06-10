@@ -23,6 +23,8 @@ class Config:
     AVATAR_FOLDER = os.path.join(basedir, 'APP/', AVATAR_PATH)
     DEFAULT_AVATAR = '/static/resource/img/none.jpg'
 
+    IMAGE_PATH = 'static/upload/image/'
+    IMAGE_FOLDER = os.path.join(basedir, 'APP/', IMAGE_PATH)
     # 应用模板封面的存储路径
     APPLICATION_PATH = 'static/upload/application'
     APPLICATION_FOLDER = os.path.join(basedir, 'APP/', APPLICATION_PATH)
@@ -54,7 +56,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     # 连接测试环境数据库的URL
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DEV_DATABASE_URL') or
-                               'mysql://root:2018@localhost/edgeserver_dev')
+                               'mysql://root:1314@localhost/edgeserver_dev')
 
 
 class TestingConfig(Config):

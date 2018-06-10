@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 from flask import render_template, redirect, request, url_for, current_app, abort, jsonify, session, flash
 from flask_login import login_user, logout_user, current_user
 from datetime import datetime
@@ -72,7 +73,6 @@ def index():
     # 获取总用户数量
     all_users = User.query.all()
     # print(all_users)
-
 
     return render_template('admin/index.html',
                            title=u'主控制台',
@@ -217,6 +217,7 @@ def user_log(uid):
                            logs=logs,
                            title=u'%s-操作日志' % _user.real_name)
 
+
 """
    用户操作日志相关
 """
@@ -268,6 +269,55 @@ def user_del():
     return redirect(url_for('admin.user'))
     print(uid)
 
+
+@admin.route('/user/add/', methods=['GET', 'POST'])
+def user_add():
+    if request.method == 'GET':
+        return render_template("admin/user/add.html", title=u"添加管理员")
+    elif request.method == 'POST':
+        _form = request.form
+        username = _form['username']
+        email = _form['email']
+        password = _form['password']
+        password2 = _form['password2']
+
+        """此处可继续完善后端验证，如过滤特殊字符等"""
+        message_e, message_u, message_p = "", "", ""
+        if User.query.filter_by(username=username).first():
+            message_u = u'用户名已存在'
+        if User.query.filter_by(email=email).first():
+            message_e = u'邮箱已存在'
+        if password != password2:
+            message_p = u'两次输入密码不一致'
+
+        if not re.search('^[a-zA-Z][a-zA-Z0-9]{2,12}$', username):
+            message_u = u'用户名必须以字母开头,只能包含字母或数字, 且不能小于3位大于11位'
+        # if not re.search('^[a-zA-Z][a-zA-Z0-9]{5,}$', password):
+        #     message_p = u'密码只能包含字母与数字, 且不能小于6位'
+
+        data = None
+        if message_u or message_e or message_e:
+            data = _form
+        if message_u or message_p or message_e:
+            return render_template("admin/user/add.html", form=_form,
+                                   title=u'添加管理员',
+                                   message_u=message_u,
+                                   message_p=message_p,
+                                   message_e=message_e,
+                                   data=data)
+        else:
+            reg_user = User()
+            reg_user.email = email
+            reg_user.password = password
+            reg_user.username = username
+            reg_user.avatar_url = current_app.config['DEFAULT_AVATAR']
+            # reg_user.api_password = generate_password()
+            db.session.add(reg_user)
+            db.session.commit()
+            # login_user(reg_user)
+            # reg_user.last_login = datetime.now()
+            db.session.commit()
+            return redirect(url_for('admin.user'))
 
 
 """

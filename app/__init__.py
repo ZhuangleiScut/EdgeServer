@@ -9,8 +9,8 @@ from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import config
-# import pymysql
-# pymysql.install_as_MySQLdb()
+import pymysql
+pymysql.install_as_MySQLdb()
 
 
 mail = Mail()
@@ -33,5 +33,8 @@ def create_app(config_name):
     # 注册路由
     from .admin import admin as admin_blueprint
     app.register_blueprint(admin_blueprint, url_prefix='/admin')
+
+    from .image import image as image_blueprint
+    app.register_blueprint(image_blueprint, url_prefix='/image')
 
     return app
