@@ -37,4 +37,7 @@ def create_app(config_name):
     from .image import image as image_blueprint
     app.register_blueprint(image_blueprint, url_prefix='/image')
 
+    from .system import system as system_blueprint
+    app.register_blueprint(system_blueprint, url_prefix='/system')
+
     return app

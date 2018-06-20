@@ -6,7 +6,7 @@ from flask_login import login_user, logout_user, current_user
 from datetime import datetime
 import json
 from ..models import User, Log
-from ..util.authorize import admin_login
+from ..util.authorize import admin_login, super_login
 from ..util.file_manage import get_file_type
 from PIL import Image
 import os
@@ -256,7 +256,7 @@ def log():
 
 
 @admin.route('/user/del/', methods=['GET', 'POST'])
-@admin_login
+@super_login
 def user_del():
     """管理员删除未验证用户"""
     uid = request.form['id']
@@ -271,6 +271,7 @@ def user_del():
 
 
 @admin.route('/user/add/', methods=['GET', 'POST'])
+@super_login
 def user_add():
     if request.method == 'GET':
         return render_template("admin/user/add.html", title=u"添加管理员")
