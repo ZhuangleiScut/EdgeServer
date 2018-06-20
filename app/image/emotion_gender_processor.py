@@ -22,6 +22,9 @@ def dealImage(image_path):
     gender_labels = get_labels('imdb')
     font = cv2.FONT_HERSHEY_SIMPLEX
 
+
+
+
     # hyper-parameters for bounding boxes shape
     gender_offsets = (30, 60)
     gender_offsets = (10, 10)
