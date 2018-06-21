@@ -9,7 +9,6 @@ from app.image.utils.inference import load_detection_model, detect_faces, apply_
     load_image
 from app.image.utils.preprocessor import preprocess_input
 
-
 def dealImage(image_path):
     basedir = os.path.abspath(os.path.dirname(__file__))
     # parameters for loading data and images
