@@ -5,7 +5,7 @@ from flask import render_template, redirect, request, url_for, current_app, abor
 from flask_login import login_user, logout_user, current_user
 from datetime import datetime
 import json
-from ..models import User, Log
+from ..models import User, Log, Equipment
 from ..util.authorize import admin_login, super_login
 from ..util.file_manage import get_file_type
 from PIL import Image
@@ -392,3 +392,64 @@ def setting_avatar():
         else:
             message_fail = u"无效的文件类型"
             return render_template('admin/user/setting_avatar.html', message_fail=message_fail)
+
+
+@admin.route('/raspi')
+@admin_login
+def raspi():
+    """管理员查看系统用户列表"""
+    raspis = Equipment.query.all()
+    return render_template('admin/raspi/index.html',
+                           users=raspis,
+                           title=u'树莓派管理')
+
+
+@admin.route('/raspi/add/', methods=['GET', 'POST'])
+@admin_login
+def raspi_add():
+    if request.method == 'GET':
+        return render_template("admin/raspi/add.html", title=u"添加树莓派")
+    elif request.method == 'POST':
+        _form = request.form
+        username = _form['username']
+        email = _form['email']
+        password = _form['password']
+        password2 = _form['password2']
+
+        """此处可继续完善后端验证，如过滤特殊字符等"""
+        message_e, message_u, message_p = "", "", ""
+        if User.query.filter_by(username=username).first():
+            message_u = u'用户名已存在'
+        if User.query.filter_by(email=email).first():
+            message_e = u'邮箱已存在'
+        if password != password2:
+            message_p = u'两次输入密码不一致'
+
+        if not re.search('^[a-zA-Z][a-zA-Z0-9]{2,12}$', username):
+            message_u = u'用户名必须以字母开头,只能包含字母或数字, 且不能小于3位大于11位'
+        # if not re.search('^[a-zA-Z][a-zA-Z0-9]{5,}$', password):
+        #     message_p = u'密码只能包含字母与数字, 且不能小于6位'
+
+        data = None
+        if message_u or message_e or message_e:
+            data = _form
+        if message_u or message_p or message_e:
+            return render_template("admin/user/add.html", form=_form,
+                                   title=u'添加管理员',
+                                   message_u=message_u,
+                                   message_p=message_p,
+                                   message_e=message_e,
+                                   data=data)
+        else:
+            reg_user = User()
+            reg_user.email = email
+            reg_user.password = password
+            reg_user.username = username
+            reg_user.avatar_url = current_app.config['DEFAULT_AVATAR']
+            # reg_user.api_password = generate_password()
+            db.session.add(reg_user)
+            db.session.commit()
+            # login_user(reg_user)
+            # reg_user.last_login = datetime.now()
+            db.session.commit()
+            return redirect(url_for('admin.user'))

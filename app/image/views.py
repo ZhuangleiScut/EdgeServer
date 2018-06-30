@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-from flask import request,current_app, abort
+from flask import request, current_app, abort
 import os
 from . import image
 import logging
@@ -18,7 +18,7 @@ def get_frame():
         upload_file = request.files['file']
         # 传过来的文件名字
         old_file_name = upload_file.filename
-        print(basedir)
+        # print(basedir)
         if upload_file:
             file_path = os.path.join(current_app.config['IMAGE_FOLDER'], old_file_name)
             upload_file.save(file_path)

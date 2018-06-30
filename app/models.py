@@ -97,6 +97,7 @@ class Equipment(db.Model):
     image_num = db.Column(db.Integer)                           # 树莓派上传的图片数量
     run_time = db.Column(db.DateTime(), default=datetime.now)   # 设备开始运行时间
     last_commit = db.Column(db.DateTime())                      # 最后一次上传的时间
+    ip_addr = db.Column(db.String(128))
     image = db.relationship('Image', backref='equip')
 
 

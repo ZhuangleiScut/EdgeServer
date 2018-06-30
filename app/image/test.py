@@ -176,11 +176,13 @@ def dealImage(image_path):
         offset = (float(noseT[0] - 2 * noseB[0] + chinB[0] + lipU[0] - lipL[0]),
                   float(noseT[1] - 2 * noseB[1] + chinB[1] + lipU[1] - lipL[1]))
 
+        print("offset", offset)
+
         # BACKGROUND RECTANGLE
         recB = (edgeTL, edgeTR, edgeBR, edgeBL)
 
         # FOREBACKGROUND RECTANGLE
-        recF = (scale_faceangle((recB), 1, offset))
+        recF = (scale_faceangle((recB), 1.1, offset))
         #
         # 脸部特征点
         # for (x, y) in shape_np:
@@ -236,12 +238,12 @@ def dealImage(image_path):
         print(gender_text)
         print(emotion_text)
 
-        # cv2.imshow('Frame', rgb_image)
-        str0 = image_path.split('/')
-        file_path = os.path.join(current_app.config['RESULT_FOLDER'], str0[-1])
-        # print(file_path)
-        cv2.imwrite(file_path, rgb_image)
+        cv2.imshow('Frame', rgb_image)
+        cv2.imwrite('do.jpg', rgb_image)
+        # PRESS ESCAPE TO EXIT
+        if cv2.waitKey(1) == 27:
+            break
 
 
 if __name__ == '__main__':
-    dealImage('82.jpg')
+    dealImage('277.jpg')
